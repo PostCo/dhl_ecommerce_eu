@@ -58,7 +58,14 @@ module DHLEcommerceEU
     # @return [Shipment] Shipment object
     #
     def create(params: { generateLabel: true, labelFormat: 'pdf', labelSize: '10x15' }, **attributes)
-      Shipment.new post_request('ccc/send-cpan', params: params, body: attributes).parse
+      response = post_request('ccc/send-cpan', params: params, body: attributes)
+      case response.headers['Content-Type']
+      when 'application/pdf'
+        Shipment.new id: response.headers['shipmentId'], label_blob: response.body.to_s
+      when 'application/json'
+        payload = response.parse
+        raise Error, "Your request was malformed. #{payload['error']}" if payload['error']
+      end
     end
   end
 end
