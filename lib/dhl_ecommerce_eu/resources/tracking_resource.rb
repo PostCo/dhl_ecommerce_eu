@@ -9,7 +9,11 @@ module DHLEcommerceEU
     #
     def retrieve(shipment_id)
       payload = get_request('ccc/track-trace', params: { shipmentId: shipment_id }).parse
-      payload.map(&Tracking.method(:new))
+      if payload.is_a?(Array)
+        payload.map(&Tracking.method(:new))
+      else
+        Tracking.new(payload)
+      end
     end
   end
 end
