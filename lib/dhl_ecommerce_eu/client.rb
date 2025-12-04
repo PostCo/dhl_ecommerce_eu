@@ -43,7 +43,7 @@ module DHLEcommerceEU
       return cached_token if cached_token
 
       response = fetch_auth_response
-      handle_auth_error(response) unless response['status'] == '200'
+      handle_auth_error(response) unless response['status'] == 200
 
       bearer_token = response['access_token']
       DHLEcommerceEU.cache.write(cache_key, bearer_token, expires_in: response['expires_in'] - 60)
