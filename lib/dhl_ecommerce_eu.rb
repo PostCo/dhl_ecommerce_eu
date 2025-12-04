@@ -21,4 +21,10 @@ module DHLEcommerceEU
   autoload :Tracking, 'dhl_ecommerce_eu/objects/tracking'
 
   class Error < StandardError; end
+  class AuthenticationError < Error; end
+  class AuthorizationError < Error; end
+  class NotFoundError < Error; end
+  class RateLimitError < Error; end
+  class InternalServerError < Error; end
+  class ServiceUnavailableError < Error; end
 end

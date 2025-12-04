@@ -42,12 +42,38 @@ module DHLEcommerceEU
       cached_token = DHLEcommerceEU.cache.read(cache_key)
       return cached_token if cached_token
 
-      client = HTTP.headers(content_type: 'application/json', accept: 'application/json')
-                   .basic_auth(user: client_id, pass: client_secret)
-      response = client.get("#{url_base}ccc/v1/auth/accesstoken").parse
+      response = fetch_auth_response
+      handle_auth_error(response) unless response['status'] == '200'
+
       bearer_token = response['access_token']
       DHLEcommerceEU.cache.write(cache_key, bearer_token, expires_in: response['expires_in'] - 60)
       bearer_token
+    end
+
+    def fetch_auth_response
+      client = HTTP.headers(content_type: 'application/json', accept: 'application/json')
+                   .basic_auth(user: client_id, pass: client_secret)
+      client.get("#{url_base}ccc/v1/auth/accesstoken").parse
+    end
+
+    def handle_auth_error(response) # rubocop:disable Metrics/MethodLength
+      error_message = response['detail']
+      case response['status']
+      when '401'
+        raise AuthenticationError, "Invalid credentials. #{error_message}"
+      when '403'
+        raise AuthorizationError, "Access denied. #{error_message}"
+      when '404'
+        raise NotFoundError, "Resource not found. #{error_message}"
+      when '429'
+        raise RateLimitError, "Rate limit exceeded. #{error_message}"
+      when '500'
+        raise InternalServerError, "Internal server error. #{error_message}"
+      when '503'
+        raise ServiceUnavailableError, "Service unavailable. #{error_message}"
+      else
+        raise Error, "Unknown error. #{error_message}"
+      end
     end
   end
 end
