@@ -59,17 +59,17 @@ module DHLEcommerceEU
     def handle_auth_error(response) # rubocop:disable Metrics/MethodLength
       error_message = response['detail']
       case response['status']
-      when '401'
+      when 401
         raise AuthenticationError, "Invalid credentials. #{error_message}"
-      when '403'
+      when 403
         raise AuthorizationError, "Access denied. #{error_message}"
-      when '404'
+      when 404
         raise NotFoundError, "Resource not found. #{error_message}"
-      when '429'
+      when 429
         raise RateLimitError, "Rate limit exceeded. #{error_message}"
-      when '500'
+      when 500
         raise InternalServerError, "Internal server error. #{error_message}"
-      when '503'
+      when 503
         raise ServiceUnavailableError, "Service unavailable. #{error_message}"
       else
         raise Error, "Unknown error. #{error_message}"
