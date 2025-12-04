@@ -43,22 +43,24 @@ module DHLEcommerceEU
       return cached_token if cached_token
 
       response = fetch_auth_response
-      handle_auth_error(response) unless response['status'] == 200
+      handle_auth_error(response) unless response.status == 200
 
-      bearer_token = response['access_token']
-      DHLEcommerceEU.cache.write(cache_key, bearer_token, expires_in: response['expires_in'] - 60)
+      payload = response.parse
+      bearer_token = payload['access_token']
+      DHLEcommerceEU.cache.write(cache_key, bearer_token, expires_in: payload['expires_in'] - 60)
       bearer_token
     end
 
     def fetch_auth_response
       client = HTTP.headers(content_type: 'application/json', accept: 'application/json')
                    .basic_auth(user: client_id, pass: client_secret)
-      client.get("#{url_base}ccc/v1/auth/accesstoken").parse
+      client.get("#{url_base}ccc/v1/auth/accesstoken")
     end
 
     def handle_auth_error(response) # rubocop:disable Metrics/MethodLength
-      error_message = response['detail']
-      case response['status']
+      payload = response.parse
+      error_message = payload['detail']
+      case response.status
       when 401
         raise AuthenticationError, "Invalid credentials. #{error_message}"
       when 403
